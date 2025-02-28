@@ -1,12 +1,16 @@
 from dataclasses import dataclass, field
-from typing import List, Self
 from uuid import uuid4
 import spacy
 import logging
+from datetime import datetime
 
 
 logging.basicConfig(level=logging.INFO)
 NLP = spacy.load('en_core_web_lg')
+
+
+GR = 1.618         # золотое сечение
+DEFAULT_FORGOT = 1  # время забывания в минутах
 
 
 @dataclass
@@ -15,6 +19,21 @@ class Card:
     context: str
     translation: str
     id: str = field(default_factory=lambda: str(uuid4()))
+
+    _decay: float = field(default=1)     # время забывания в минутах
+    _shown: int = field(default=1)       # сколько раз был показан
+    _last_show: datetime = field(default_factory=datetime.now)   # время последнего показа
+
+    def update_state(self, success: bool):
+        current_time = datetime.now()
+        self._shown += 1
+        if success:
+            decay = GR * (current_time - self._last_show).total_seconds() / 60
+            self._decay = decay
+        else:
+            self._decay = DEFAULT_FORGOT
+        self._last_show = current_time
+
 
     # def __eq__(self, value: object, /) -> bool:
     #     if not isinstance(value, Card):
@@ -80,7 +99,6 @@ def parser(query: str) -> Card:
 
     context = f'{split_context[0].strip()} {dash} {split_context[2].strip()}'.strip()
     logging.info(f'Context: {context}')
-
 
     return Card(word, context, translation)
 
