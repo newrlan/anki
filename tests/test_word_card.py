@@ -15,7 +15,7 @@ def test_Card_repr():
 
     ("I * thought* you finished / думать", Card('think', 'I _____(2) you finished', 'думать')),
     ("I've *  seen* him last week / видеть", Card('see', "I've _____(3) him last week", 'видеть')),
-    ("I've *wisited * him last week / видеть", Card('wisite', "I've _____ed him last week", 'видеть')),
+    ("I've *visited * him last week / видеть", Card('visited', "I've _____ed him last week", 'видеть')),
     ("I'll * do * a lot of things. / делать ", Card('do', "I'll _____ a lot of things.", "делать")),
     ("She *shows* me the room /показать", Card('show', 'She _____s me the room', 'показать')),
     ("I've *finished*/закончить", Card('finish', "I've _____ed", 'закончить')),

@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Optional, Protocol, runtime_checkable
 from uuid import uuid4
 import spacy
 import logging
@@ -9,10 +10,6 @@ logging.basicConfig(level=logging.INFO)
 NLP = spacy.load('en_core_web_lg')
 
 
-GR = 1.618         # золотое сечение
-DEFAULT_FORGOT = 1  # время забывания в минутах
-
-
 @dataclass
 class Card:
     word: str
@@ -20,28 +17,50 @@ class Card:
     translation: str
     id: str = field(default_factory=lambda: str(uuid4()))
 
-    _decay: float = field(default=1)     # время забывания в минутах
-    _shown: int = field(default=1)       # сколько раз был показан
-    _last_show: datetime = field(default_factory=datetime.now)   # время последнего показа
-
-    def update_state(self, success: bool):
-        current_time = datetime.now()
-        self._shown += 1
-        if success:
-            decay = GR * (current_time - self._last_show).total_seconds() / 60
-            self._decay = decay
-        else:
-            self._decay = DEFAULT_FORGOT
-        self._last_show = current_time
-
-
-    # def __eq__(self, value: object, /) -> bool:
-    #     if not isinstance(value, Card):
-    #         return False
-    #     return self.word == value.word and self.translation == value.translation and self.contex == value.contex
-
     def __repr__(self):
         return f"{self.word} / {self.translation}"
+
+
+# @dataclass
+@runtime_checkable
+class MemoStat(Protocol):
+    card_id: str
+    last_show: datetime
+
+    def prob_remember(self) -> float:
+        """ Вероятность, что слово будет вспомнито. """
+        ...
+
+    def update(self, shows: int, remembered: int):
+        """ Обновить статистику показов
+
+            shows - количество показов
+            remembered - сколько раз узнал карточку
+        """
+        ...
+
+
+@dataclass
+class GammaPoisonMemo:
+    card_id: str
+    last_show: datetime = field(default_factory=lambda: datetime.now())
+
+    eta: float = field(default=1)
+    last_gamma: float = field(default=1)
+    last_mu: float = field(default=1)
+    last_sigma2: float = field(default=1)
+
+    def prob_remember(self) -> float:
+        return 1.
+
+    def update(self, shows: int, remembered: int):
+        g_tt = self.last_gamma + shows
+        m_tt = (self.last_mu * self.last_gamma + remembered) / g_tt
+        s_tt2 = m_tt / g_tt
+
+        self.last_mu = m_tt
+        self.last_sigma2 += self.eta * (m_tt ** 2 + s_tt2)
+        self.last_gamma = self.last_mu / self.last_sigma2
 
 
 def parser(query: str) -> Card:
@@ -104,8 +123,5 @@ def parser(query: str) -> Card:
 
 
 if __name__ == '__main__':
-    wc = parser("I *thought* you finished / думать")
-    wc = parser("I've *seen* him last week / видеть")
-    wc = parser("I've *wisited* him last week / видеть")
-    wc = parser("I'll *do* a lot of things. / делать")
-    wc = parser("She *shows* me the room / показать")
+    cc = GammaPoisonMemo('asdf')
+    print(isinstance(cc, MemoStat))
