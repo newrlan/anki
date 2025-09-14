@@ -29,10 +29,10 @@ TODO
 Логика подбора слов из базы для повторения реализована на многоруких бандитах. Использовалось [динамическая Гамма-Пуассоновская модель](https://habr.com/ru/companies/surfingbird/articles/169573). Итоговые формулы обновления параметров модели следующие:
 
 Инициализация
-$$\mu_0 = 1, \sigma_0 = 1, \eta=1$$
+$$ \mu_0 = 1, \sigma_0 = 1, \eta=1 $$
 
-$$
-\gamma_t = \mu_t / \sigma_t^2, \\ \gamma_{t|t} = \gamma_t + n_t \\
-\mu_{t|t} = \frac{\mu_t \gamma_t + r_t}{\gamma_{t|t}} \\
-\sigma_{t|t}^2 = \mu_{t|t} / \gamma_{t|t}
-$$
+Обновление весов:
+
+$$ \gamma_t = \mu_t / \sigma_t^2, \\ \gamma_{t|t} = \gamma_t + n_t $$
+$$ \mu_{t|t} = \frac{\mu_t \gamma_t + r_t}{\gamma_{t|t}} $$
+$$ \sigma_{t|t}^2 = \mu_{t|t} / \gamma_{t|t} $$
