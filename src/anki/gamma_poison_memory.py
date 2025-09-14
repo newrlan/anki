@@ -1,7 +1,31 @@
 from dataclasses import dataclass
 from typing import Any, List
+
+from numpy import sqrt
 from anki.prototypes import Memory
 import pandas as pd
+
+# NOTE: выбрал архитектуру в функциональном стиле. Код получится немного
+# громоздким из-за большого количества входных параметров, но зато его можно
+# будет применять через apply
+
+def gamma_poison_update(
+    mu: float,
+    sigma: float,
+    success: int,   # сколько раз не вспомнил слово
+    total: int,     # сколько раз слово было показано
+    eta: float = 1.,
+):
+
+    # TODO: перейти от sigma к dispersion
+
+    gamma_t = mu / (sigma ** 2)
+    gamma_tt = gamma_t + total
+    mu_tt = (mu * gamma_t + success) / gamma_tt
+    sigma_tt2 = mu_tt / gamma_tt
+
+    new_sigma = sqrt(sigma_tt2 + eta * (mu_tt ** 2 + sigma_tt2))
+    return mu_tt, new_sigma
 
 
 class GammaPoisonMemory:
