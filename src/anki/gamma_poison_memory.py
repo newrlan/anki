@@ -11,21 +11,24 @@ import pandas as pd
 
 def gamma_poison_update(
     mu: float,
-    sigma: float,
+    dispersion: float,
     success: int,   # сколько раз не вспомнил слово
     total: int,     # сколько раз слово было показано
     eta: float = 1,
 ):
 
+    # В redme описаны формулы через ср.кв.отклонение, но для вычислений удобнее
+    # работать с дисперсией d = s**2
+
     # TODO: перейти от sigma к dispersion
 
-    gamma_t = mu / (sigma ** 2)
+    gamma_t = mu / dispersion
     gamma_tt = gamma_t + total
     mu_tt = (mu * gamma_t + success) / gamma_tt
-    sigma_tt2 = mu_tt / gamma_tt
+    dispersion_tt = mu_tt / gamma_tt
 
-    new_sigma = sqrt(sigma_tt2 + eta * (mu_tt ** 2 + sigma_tt2))
-    return mu_tt, new_sigma
+    new_dispersion = dispersion_tt + eta * (mu_tt ** 2 + dispersion_tt)
+    return mu_tt, new_dispersion
 
 
 class GammaPoisonMemory:
