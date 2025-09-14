@@ -14,7 +14,7 @@ def gamma_poison_update(
     sigma: float,
     success: int,   # сколько раз не вспомнил слово
     total: int,     # сколько раз слово было показано
-    eta: float = 1.,
+    eta: float = 1,
 ):
 
     # TODO: перейти от sigma к dispersion
